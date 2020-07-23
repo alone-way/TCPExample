@@ -16,10 +16,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.temporal.TemporalUnit;
 
 /**
  * @author IceCube
@@ -48,11 +45,13 @@ public class SocketHandler implements Runnable {
             System.out.println("msg = " + msg);
 
             //将客户端访问记录保存到数据库中
-            ClientAccess access = new ClientAccess();
-            access.setIpAddress(socket.getInetAddress().getHostAddress());
-            access.setAccessTime(Timestamp.from(Instant.now()));
-            access.setParameters(msg);
-            new ClientAccessService().saveAccess(access);
+            new Thread(() -> {
+                ClientAccess access = new ClientAccess();
+                access.setIpAddress(socket.getInetAddress().getHostAddress());
+                access.setAccessTime(Timestamp.from(Instant.now()));
+                access.setParameters(msg);
+                new ClientAccessService().saveAccess(access);
+            }).start();
 
             if ("end".equals(msg)) {
                 finished = true;
